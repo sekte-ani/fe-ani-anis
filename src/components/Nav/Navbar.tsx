@@ -30,7 +30,10 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         setDropdownOpen(false);
       }
     };
@@ -41,7 +44,9 @@ export default function Navbar() {
   useEffect(() => {
     if (isOpen) document.body.style.overflow = "hidden";
     else document.body.style.overflow = "";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [isOpen]);
 
   const closeAll = () => {
@@ -59,8 +64,16 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" onClick={closeAll} className="flex items-center shrink-0">
-          <img src="/images/logo-ani.png" alt="ANI Logo" className="h-9 w-auto" />
+        <Link
+          href="/"
+          onClick={closeAll}
+          className="flex items-center shrink-0"
+        >
+          <img
+            src="/images/logo-ani.png"
+            alt="ANI Logo"
+            className="h-9 w-auto"
+          />
         </Link>
 
         {/* Desktop Nav */}
@@ -135,7 +148,9 @@ export default function Navbar() {
       {/* Mobile Menu Overlay */}
       <div
         className={`lg:hidden fixed inset-0 top-0 bg-black/20 backdrop-blur-sm transition-opacity duration-300 ${
-          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          isOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
         }`}
         onClick={closeAll}
       />
@@ -149,7 +164,11 @@ export default function Navbar() {
         {/* Panel Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
           <Link href="/" onClick={closeAll}>
-            <img src="/images/logo-ani.png" alt="ANI Logo" className="h-8 w-auto" />
+            <img
+              src="/images/logo-ani.png"
+              alt="ANI Logo"
+              className="h-8 w-auto"
+            />
           </Link>
           <button
             onClick={closeAll}
