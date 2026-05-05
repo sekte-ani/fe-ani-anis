@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { AOSProvider } from "@/components/Aos/AOSProvider";
-import Layout from "@/components/Layouts/Layout";
+import ClientLayout from "@/components/Layouts/ClientLayout";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -16,9 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Layout>
-          <AOSProvider>{children}</AOSProvider>
-        </Layout>
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );
