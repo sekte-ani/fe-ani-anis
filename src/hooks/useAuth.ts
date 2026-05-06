@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Cookies from "js-cookie";
 
 export function useAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -8,7 +9,7 @@ export function useAuth() {
 
   useEffect(() => {
     const checkAuth = () => {
-      const token = localStorage.getItem("access_token");
+      const token = Cookies.get("access_token");
       setIsAuthenticated(!!token);
       setIsLoading(false);
     };
@@ -21,16 +22,16 @@ export function useAuth() {
 
 export function getAuthToken(): string | null {
   if (typeof window !== "undefined") {
-    return localStorage.getItem("access_token");
+    return Cookies.get("access_token") || null;
   }
   return null;
 }
 
 export function setAuthToken(token: string): void {
-  localStorage.setItem("access_token", token);
+  Cookies.set("access_token", token, { expires: 1 });
 }
 
 export function clearAuthToken(): void {
-  localStorage.removeItem("access_token");
+  Cookies.remove("access_token");
   localStorage.removeItem("user_data");
 }

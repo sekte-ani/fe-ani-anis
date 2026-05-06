@@ -12,6 +12,7 @@ import {
   CheckCircle,
   X,
 } from "lucide-react";
+import Cookies from "js-cookie";
 import { useSignInMutation } from "@/services/authApi";
 
 interface Toast {
@@ -31,7 +32,7 @@ export default function LoginForm() {
   const [signIn, { isLoading }] = useSignInMutation();
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const token = Cookies.get("access_token");
     if (token) {
       const redirect = searchParams.get("redirect") || "/admin";
       router.replace(redirect);
@@ -53,7 +54,7 @@ export default function LoginForm() {
       const result = await signIn({ email, password }).unwrap();
 
       if (result.data?.access_token) {
-        localStorage.setItem("access_token", result.data.access_token);
+        Cookies.set("access_token", result.data.access_token, { expires: 1 });
         localStorage.setItem("user_data", JSON.stringify(result.data.user));
         addToast(result.message || "Login berhasil!", "success");
 
