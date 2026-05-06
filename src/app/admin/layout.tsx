@@ -16,6 +16,7 @@ import {
 import { useLogoutMutation } from "@/services/authApi";
 import AdminRouteGuard from "@/components/Auth/AdminRouteGuard";
 import type { User } from "@/types/auth";
+import Cookies from "js-cookie";
 
 const menuItems = [
   { key: "/admin", label: "Dashboard Overview", icon: LayoutDashboard },
@@ -68,7 +69,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       console.error("Logout error:", error);
     }
     
-    localStorage.removeItem("access_token");
+    Cookies.remove("access_token");
     localStorage.removeItem("user_data");
     router.push("/login");
   };
