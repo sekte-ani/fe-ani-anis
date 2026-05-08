@@ -17,6 +17,7 @@ import type {
 export const mockApi = createApi({
   reducerPath: "mockApi",
   baseQuery: axiosBaseQuery(),
+  tagTypes: ["Mocks"],
   endpoints: (builder) => ({
     getMocks: builder.query<MockListResponse, MockFilterParams | void>({
       query: (params) => {
@@ -31,6 +32,7 @@ export const mockApi = createApi({
           method: "GET",
         };
       },
+      providesTags: ["Mocks"],
     }),
 
     getMockById: builder.query<MockDetailResponse, string>({
@@ -38,6 +40,7 @@ export const mockApi = createApi({
         url: `/admin/mocks/${mockId}`,
         method: "GET",
       }),
+      providesTags: (_result, _error, mockId) => [{ type: "Mocks", id: mockId }],
     }),
 
     uploadImage: builder.mutation<UploadImageResponse, File>({
@@ -58,6 +61,7 @@ export const mockApi = createApi({
         method: "POST",
         data: mockData,
       }),
+      invalidatesTags: ["Mocks"],
     }),
 
     updateMock: builder.mutation<
@@ -69,6 +73,7 @@ export const mockApi = createApi({
         method: "PUT",
         data,
       }),
+      invalidatesTags: ["Mocks"],
     }),
 
     deleteMock: builder.mutation<DeleteMockResponse, string>({
@@ -76,6 +81,7 @@ export const mockApi = createApi({
         url: `/admin/mocks/${mockId}`,
         method: "DELETE",
       }),
+      invalidatesTags: ["Mocks"],
     }),
 
     generateKeywords: builder.mutation<
