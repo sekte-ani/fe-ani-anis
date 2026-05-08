@@ -10,14 +10,20 @@ export interface Mock {
   updated_at?: string;
 }
 
+export interface Paginator {
+  current_page: number;
+  limit: number;
+  back_page: number | null;
+  next_page: number | null;
+  total_records: number;
+  total_pages: number;
+}
+
 export interface MockListResponse {
+  success: boolean;
+  message: string;
   data: Mock[];
-  meta?: {
-    total: number;
-    page: number;
-    limit: number;
-    total_pages: number;
-  };
+  paginator?: Paginator;
 }
 
 export interface MockDetailResponse {

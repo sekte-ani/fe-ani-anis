@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState, useCallback, useRef, useMemo } from "react";
 import {
   Search,
   RotateCcw,
@@ -28,6 +27,7 @@ import {
   useLazyGetMockByIdQuery,
 } from "@/services/mockApi";
 import type { Mock } from "@/types/mock";
+import { useDebounce } from "@/hooks/useDebounce";
 
 interface Toast {
   id: string;
@@ -90,6 +90,7 @@ export default function MockupManagerPage() {
 
   const [selectedSektor, setSelectedSektor] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 400);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
@@ -106,16 +107,14 @@ export default function MockupManagerPage() {
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const queryParams = {
-    sektor: selectedSektor.length === 1 ? selectedSektor[0] : undefined,
-    search: searchQuery || undefined,
+  const queryParams = useMemo(() => ({
+    sektor: selectedSektor.length > 0 ? selectedSektor.join(",") : undefined,
+    search: debouncedSearch || undefined,
     page: currentPage,
     limit: pageSize,
-  };
+  }), [selectedSektor, debouncedSearch, currentPage, pageSize]);
 
-  const { data: mocksData, isLoading, refetch } = useGetMocksQuery(
-    selectedSektor.length <= 1 && (searchQuery || currentPage > 1) ? queryParams : Object.keys(queryParams).length > 0 ? queryParams : undefined
-  );
+  const { data: mocksData, isLoading } = useGetMocksQuery(queryParams);
 
   const [createMock] = useCreateMockMutation();
   const [deleteMock] = useDeleteMockMutation();
@@ -128,8 +127,31 @@ export default function MockupManagerPage() {
   const [loadingEdit, setLoadingEdit] = useState(false);
 
   const mocks = mocksData?.data || [];
-  const totalItems = mocksData?.meta?.total || mocks.length;
-  const totalPages = Math.ceil(totalItems / pageSize);
+  const totalItems = mocksData?.paginator?.total_records ?? mocks.length;
+  const totalPages = mocksData?.paginator?.total_pages ?? Math.ceil(totalItems / pageSize);
+  const apiCurrentPage = mocksData?.paginator?.current_page ?? currentPage;
+
+  // Generate truncated page numbers (e.g. 1 2 ... 5 6 7 ... 10)
+  const getPageNumbers = useCallback((total: number, current: number): (number | "...")[] => {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    const pages: (number | "...")[] = [];
+    if (current <= 4) {
+      for (let i = 1; i <= 5; i++) pages.push(i);
+      pages.push("...");
+      pages.push(total);
+    } else if (current >= total - 3) {
+      pages.push(1);
+      pages.push("...");
+      for (let i = total - 4; i <= total; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      pages.push("...");
+      for (let i = current - 1; i <= current + 1; i++) pages.push(i);
+      pages.push("...");
+      pages.push(total);
+    }
+    return pages;
+  }, []);
 
   const addToast = (message: string, type: "success" | "error") => {
     const id = Date.now().toString();
@@ -208,7 +230,6 @@ export default function MockupManagerPage() {
         namaMock: "",
         keywords: "",
       });
-      refetch();
     } catch (error: any) {
       addToast(error?.data?.message || "Gagal mengupdate mockup", "error");
     } finally {
@@ -217,7 +238,7 @@ export default function MockupManagerPage() {
   };
 
   const stats = {
-    total: mocks.length,
+    total: totalItems,
     sektor: new Set(mocks.map((m: Mock) => m.sektor)).size,
     belumEmbedding: mocks.filter((m: Mock) => !m.embedding || m.embedding.length === 0).length,
   };
@@ -301,15 +322,6 @@ export default function MockupManagerPage() {
         namaMock: "",
         keywords: "",
       });
-      setFormData({
-        image: null,
-        imageUrl: "",
-        sektor: "",
-        mockId: "",
-        namaMock: "",
-        keywords: "",
-      });
-      refetch();
     } catch (error: any) {
       addToast(error?.data?.message || "Gagal menambahkan mockup", "error");
     } finally {
@@ -322,7 +334,6 @@ export default function MockupManagerPage() {
       try {
         await deleteMock(deleteModal.mockId).unwrap();
         addToast("Mockup berhasil dihapus", "success");
-        refetch();
       } catch (error: any) {
         addToast(error?.data?.message || "Gagal menghapus mockup", "error");
       }
@@ -336,6 +347,7 @@ export default function MockupManagerPage() {
         ? prev.filter((s) => s !== value)
         : [...prev, value]
     );
+    setCurrentPage(1);
   };
 
   const getSektorLabel = (value: string) => {
@@ -442,10 +454,7 @@ export default function MockupManagerPage() {
               >
                 {getSektorLabel(value)}
                 <button
-                  onClick={() => {
-                    setSelectedSektor((prev) => prev.filter((s) => s !== value));
-                    handleFilterChange();
-                  }}
+                  onClick={() => toggleSektor(value)}
                   className="hover:opacity-70"
                 >
                   <X size={14} />
@@ -541,9 +550,15 @@ export default function MockupManagerPage() {
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500 truncate max-w-[150px]" title={mock.path_image}>
+                        <a 
+                          href={mock.path_image} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary hover:underline truncate max-w-[150px]"
+                          title={mock.path_image}
+                        >
                           {mock.path_image}
-                        </span>
+                        </a>
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(mock.path_image);
@@ -597,24 +612,33 @@ export default function MockupManagerPage() {
         {!isLoading && mocks.length > 0 && (
           <div className="px-5 py-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-sm text-gray-500">
-              Menampilkan {(currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, totalItems)} dari {totalItems} mockup
+              Menampilkan {(apiCurrentPage - 1) * pageSize + 1} - {Math.min(apiCurrentPage * pageSize, totalItems)} dari {totalItems} mockup
             </p>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
+                disabled={!mocksData?.paginator?.back_page}
                 className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronLeft size={16} className="text-gray-600" />
               </button>
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const page = i + 1;
+              {getPageNumbers(totalPages, apiCurrentPage).map((page, idx) => {
+                if (page === "...") {
+                  return (
+                    <span
+                      key={`ellipsis-${idx}`}
+                      className="w-9 h-9 flex items-center justify-center text-sm text-gray-400"
+                    >
+                      …
+                    </span>
+                  );
+                }
                 return (
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
                     className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
-                      currentPage === page
+                      apiCurrentPage === page
                         ? "bg-primary text-white"
                         : "text-gray-600 hover:bg-gray-100"
                     }`}
@@ -625,7 +649,7 @@ export default function MockupManagerPage() {
               })}
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
+                disabled={!mocksData?.paginator?.next_page}
                 className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronRight size={16} className="text-gray-600" />

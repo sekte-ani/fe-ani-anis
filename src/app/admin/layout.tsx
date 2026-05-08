@@ -100,9 +100,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       )}
 
       <aside
-        className={`fixed lg:relative inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-gray-200 transition-all duration-300 overflow-hidden ${getSidebarWidth()}`}
-        style={{ height: "100vh" }}
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-gray-200 transition-all duration-300 ${getSidebarWidth()}`}
       >
+        <div className="flex flex-col h-full overflow-hidden">
         <div className="h-16 flex items-center justify-between px-4 border-b border-gray-100 shrink-0">
           <Link href="/admin" className="flex items-center gap-3">
             <img
@@ -149,19 +149,23 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </nav>
 
         <div className="p-3 border-t border-gray-100 shrink-0">
-          <button
-            onClick={handleLogout}
-            className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200 ${
-              collapsed && !isMobile ? "lg:justify-center" : ""
-            }`}
-          >
-            <LogOut size={20} />
-            {(!collapsed || isMobile) && <span>Logout</span>}
-          </button>
+            <button
+              onClick={handleLogout}
+              className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200 ${
+                collapsed && !isMobile ? "lg:justify-center" : ""
+              }`}
+            >
+              <LogOut size={20} />
+              {(!collapsed || isMobile) && <span>Logout</span>}
+            </button>
+          </div>
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div
+        className="flex-1 flex flex-col min-w-0 transition-all duration-300"
+        style={{ marginLeft: isMobile ? 0 : (collapsed ? 80 : 256) }}
+      >
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30 shrink-0">
           <div className="flex items-center gap-4">
             <button
