@@ -6,7 +6,8 @@ import type {
 } from "@/types/rekomendasi";
 
 const RECOMMENDATION_ENDPOINT =
-  process.env.NEXT_PUBLIC_RECOMMENDATION_URL || "http://localhost:5589/recommend";
+  process.env.NEXT_PUBLIC_RECOMMENDATION_URL ||
+  "https://anismockup.anitech.id/recommend";
 
 export const rekomendasiApi = createApi({
   reducerPath: "rekomendasiApi",
