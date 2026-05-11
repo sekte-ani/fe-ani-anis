@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import axios from "axios";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { type Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface MockReference {
   mock_id: string;
@@ -18,6 +19,61 @@ interface RecommendationResponse {
   sektor_terdeteksi: string;
   mock_references: MockReference[];
 }
+
+const markdownComponents: Components = {
+  h1: ({ children }) => (
+    <h1 className="text-2xl font-bold text-gray-900 mt-4 mb-3">{children}</h1>
+  ),
+  h2: ({ children }) => (
+    <h2 className="text-xl font-bold text-gray-900 mt-4 mb-2">{children}</h2>
+  ),
+  h3: ({ children }) => (
+    <h3 className="text-lg font-semibold text-gray-900 mt-3 mb-2">
+      {children}
+    </h3>
+  ),
+  p: ({ children }) => (
+    <p className="text-gray-700 leading-relaxed mb-3">{children}</p>
+  ),
+  ol: ({ children }) => (
+    <ol className="list-decimal list-outside pl-6 space-y-2 mb-3 marker:font-semibold marker:text-indigo-600">
+      {children}
+    </ol>
+  ),
+  ul: ({ children }) => (
+    <ul className="list-disc list-outside pl-6 space-y-2 mb-3 marker:text-indigo-600">
+      {children}
+    </ul>
+  ),
+  li: ({ children }) => (
+    <li className="text-gray-700 leading-relaxed pl-1">{children}</li>
+  ),
+  strong: ({ children }) => (
+    <strong className="font-semibold text-gray-900">{children}</strong>
+  ),
+  em: ({ children }) => <em className="italic">{children}</em>,
+  a: ({ href, children }) => (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-indigo-600 hover:text-indigo-800 underline"
+    >
+      {children}
+    </a>
+  ),
+  code: ({ children }) => (
+    <code className="bg-gray-100 text-pink-600 px-1.5 py-0.5 rounded text-sm font-mono">
+      {children}
+    </code>
+  ),
+  blockquote: ({ children }) => (
+    <blockquote className="border-l-4 border-indigo-300 pl-4 italic text-gray-600 my-3">
+      {children}
+    </blockquote>
+  ),
+  hr: () => <hr className="my-4 border-gray-200" />,
+};
 
 export default function RekomendasiPage() {
   const [input, setInput] = useState("");
@@ -88,12 +144,22 @@ export default function RekomendasiPage() {
         {result && (
           <div className="space-y-8">
             <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                Rekomendasi Fitur
-              </h2>
-              <div className="prose prose-indigo max-w-none">
-                <ReactMarkdown>{result.rekomendasi_fitur}</ReactMarkdown>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-gray-800">
+                  Rekomendasi Fitur
+                </h2>
+                {result.sektor_terdeteksi && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700 capitalize">
+                    Sektor: {result.sektor_terdeteksi}
+                  </span>
+                )}
               </div>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={markdownComponents}
+              >
+                {result.rekomendasi_fitur}
+              </ReactMarkdown>
             </div>
 
             <div className="bg-white rounded-xl shadow-lg p-6">
@@ -104,7 +170,7 @@ export default function RekomendasiPage() {
                 {result.mock_references.map((mock) => (
                   <div
                     key={mock.mock_id}
-                    className="border rounded-lg overflow-hidden"
+                    className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
                   >
                     <img
                       src={mock.path_image}
@@ -115,9 +181,14 @@ export default function RekomendasiPage() {
                       <p className="font-medium text-gray-800">
                         {mock.nama_mock}
                       </p>
-                      <p className="text-sm text-gray-500">
-                        ID: {mock.mock_id}
-                      </p>
+                      <div className="flex items-center justify-between mt-1">
+                        <p className="text-sm text-gray-500">
+                          ID: {mock.mock_id}
+                        </p>
+                        <p className="text-xs font-medium text-indigo-600">
+                          {(mock.similarity * 100).toFixed(1)}%
+                        </p>
+                      </div>
                     </div>
                   </div>
                 ))}
