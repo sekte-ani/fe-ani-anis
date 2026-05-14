@@ -88,23 +88,18 @@ function GenerationContent() {
 
   const buildWhatsAppMessage = (): string => {
     const lines = [
-      `Halo, saya tertarik untuk membuat website.`,
+      `Halo, nama saya ${formData.name} dengan email ${formData.email} dan kontak ${formData.phone_number}, saya ingin membuat website ${sektor}, dengan detail berikut:`,
       ``,
-      `*Data Diri:*`,
-      `Nama: ${formData.name}`,
-      `Email: ${formData.email}`,
-      `No. Telpon: ${formData.phone_number}`,
-      ``,
-      `========================`,
-      ``,
-      `*Mockup:*`,
       `Mock ID: ${mockId}`,
-      `Nama: ${namaMock}`,
-      `Sektor: ${sektor}`,
+      `Nama Mockup: ${namaMock}`,
     ];
 
+    if (pathImage) {
+      lines.push(`Link Mockup: ${pathImage}`);
+    }
+
     if (formData.notes.trim()) {
-      lines.push(``, `*Notes:*`, formData.notes.trim());
+      lines.push(``, `Catatan Tambahan:`, formData.notes.trim());
     }
 
     lines.push(``, `Mohon dibantu, terima kasih.`);
