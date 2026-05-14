@@ -7,7 +7,7 @@ import { ChevronDown, Menu, X } from "lucide-react";
 const navLinks = [
   { label: "Beranda", href: "/" },
   { label: "Portofolio", href: "/portofolio" },
-  { label: "Rekomendasi", href: "/rekomendasi/home2" },
+  { label: "Rekomendasi", href: "/rekomendasi/creation" },
 ];
 
 const layananItems = [
