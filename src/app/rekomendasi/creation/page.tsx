@@ -170,8 +170,14 @@ export default function CreationPage() {
   const [randomInspirations, setRandomInspirations] = useState<string[]>([]);
 
   useEffect(() => {
-    const shuffled = [...INSPIRATIONS].sort(() => 0.5 - Math.random());
-    setRandomInspirations(shuffled.slice(0, 3));
+    // Delaying the state update avoids the "synchronously calling setState" warning
+    // while safely generating client-only random data without hydration errors.
+    const timer = setTimeout(() => {
+      const shuffled = [...INSPIRATIONS].sort(() => 0.5 - Math.random());
+      setRandomInspirations(shuffled.slice(0, 3));
+    }, 0);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
