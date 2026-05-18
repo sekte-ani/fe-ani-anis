@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: anislanding-app
+    container_name: anislanding-app
     ports:
       - "3369:3369"
     environment:
@@ -22,6 +24,7 @@ services:
       context: .
       dockerfile: Dockerfile
       target: builder
+    container_name: anislanding-dev
     ports:
       - "3369:3369"
     environment:
